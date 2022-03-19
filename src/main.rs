@@ -10,21 +10,19 @@ mod config;
 fn main() {
     const TIME_STEP: f32 = 30.0 / 60.0;
 
-    let config = config::DefendersConfig::new("./config/config-example.txt".to_string());
-
     App::new()
-        .insert_resource(config)
+        .insert_resource(config::default_config())
         .add_plugins(DefaultPlugins)
         .add_startup_system(startup)
         .add_startup_system(attacker::setup)
         .add_startup_system(defender::setup)
         .add_system(defender::defender_movement_system)
         .add_system(attacker::missile_movement_system)
+        .add_system(attacker::missile_collision_system)
         .add_system_set(
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
-                .with_system(attacker::attacker_system)
-                .with_system(attacker::missile_collision_system))
+                .with_system(attacker::attacker_system))
         .add_system(bevy::input::system::exit_on_esc_system)
         .run();
 }
@@ -52,7 +50,8 @@ fn startup(mut commands: Commands, config: Res<config::DefendersConfig>) {
                     ..Default::default()
                 },
                 ..Default::default()
-            });
+            })
+            .insert(config::Collider::Scorable);
 
         if *y < last_y as f32 {
             for i in 2..last_y {
@@ -68,7 +67,8 @@ fn startup(mut commands: Commands, config: Res<config::DefendersConfig>) {
                             ..Default::default()
                         },
                         ..Default::default()
-                    });
+                    })
+                    .insert(config::Collider::Scorable);
             }
         } else if *y > last_y as f32 {
             for i in 2..*y as usize {
@@ -84,7 +84,8 @@ fn startup(mut commands: Commands, config: Res<config::DefendersConfig>) {
                             ..Default::default()
                         },
                         ..Default::default()
-                    });
+                    })
+                    .insert(config::Collider::Scorable);
             }
         }
 
