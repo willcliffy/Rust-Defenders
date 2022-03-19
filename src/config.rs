@@ -6,8 +6,15 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 #[derive(Component)]
+pub enum Collider {
+    Solid,
+    Scorable,
+    Paddle,
+}
+
+#[derive(Component)]
 pub struct DefendersConfig {
-    pub skyline: Vec<usize>,
+    pub skyline: Vec<f32>,
 
     pub attacker_num_missiles: i32,
 
@@ -17,7 +24,7 @@ pub struct DefendersConfig {
 
 fn default_config() -> DefendersConfig {
     return DefendersConfig{
-        skyline: vec![2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 6, 6, 7, 7, 7, 5, 5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 8, 8, 8, 6, 6, 6, 9, 9, 9, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 10, 10, 10, 4, 4, 4, 9, 9, 9, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 6, 6, 6, 9, 9, 9, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 6, 6, 6, 9, 9, 9, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+        skyline: vec![2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 6.0, 6.0, 7.0, 7.0, 7.0, 5.0, 5.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 8.0, 8.0, 8.0, 6.0, 6.0, 6.0, 9.0, 9.0, 9.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 10.0, 10.0, 10.0, 4.0, 4.0, 4.0, 9.0, 9.0, 9.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 6.0, 6.0, 6.0, 9.0, 9.0, 9.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 6.0, 6.0, 6.0, 9.0, 9.0, 9.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
         attacker_num_missiles: 50,
     }
 }
@@ -50,7 +57,7 @@ impl DefendersConfig {
             } else if attacker_num_missiles == -1 {
                 attacker_num_missiles = line.parse::<i32>().unwrap();
             } else {
-                line.split(' ').for_each(|x| skyline.push(x.parse::<usize>().unwrap()));
+                line.split(' ').for_each(|x| skyline.push(x.parse::<f32 >().unwrap()));
             }
         }
 

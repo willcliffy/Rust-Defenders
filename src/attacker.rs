@@ -3,7 +3,7 @@ use bevy::{
 };
 
 use crate::{
-    config::DefendersConfig,
+    config::*,
 };
 
 #[derive(Component)]
@@ -42,21 +42,34 @@ pub fn attacker_system(mut commands: Commands, mut query: Query<&mut Attacker>) 
 
     attacker.ticks_since_last_missile += 1;
 
-    if attacker.ticks_since_last_missile > 60 {
+    if attacker.ticks_since_last_missile > 5 {
         attacker.ticks_since_last_missile = 0;
 
         if attacker.missiles_left > 0 {
             attacker.missiles_left -= 1;
             commands
-                .spawn()
-                .insert(Missile { x: 10, y: 0 });
+                .spawn_bundle(SpriteBundle {
+                    transform: Transform {
+                        translation: Vec3::new(0.0, 250.0, 0.0),
+                        scale: Vec3::new(10.0, 20.0, 0.0),
+                        ..Default::default()
+                    },
+                    sprite: Sprite {
+                        color: Color::rgb(1.0, 0.25, 0.25),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                })
+                .insert(Missile { x: 10, y: 0 })
+                .insert(Collider::Paddle);
         }
     }
 }
 
-pub fn missile_movement_system(mut query: Query<&mut Missile>) {
-    for mut missile in &mut query.iter_mut() {
-        missile.y -= 1;
+pub fn missile_movement_system(mut query: Query<(&Missile, &mut Transform)>) {
+    for (_, mut transform) in &mut query.iter_mut() {
+        let translation = &mut transform.translation;
+        translation.y -= 10.0;
     }
 }
 

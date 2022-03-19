@@ -1,21 +1,37 @@
 use bevy::{
     input::{keyboard::KeyCode, Input},
-    prelude::*
+    prelude::*,
+};
+
+use crate::{
+    config::*,
 };
 
 #[derive(Component)]
 pub struct Defender {
     pub x: usize,
-    speed : usize,
+    speed : f32,
 }
 
 pub fn setup(mut commands: Commands) {
     commands
-        .spawn()
-        .insert(new_defender(1));
+        .spawn_bundle(SpriteBundle {
+            transform: Transform {
+                translation: Vec3::new(0.0, -100.0, 0.0),
+                scale: Vec3::new(120.0, 20.0, 0.0),
+                ..Default::default()
+            },
+            sprite: Sprite {
+                color: Color::rgb(0.5, 0.5, 1.0),
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .insert(new_defender(10.0))
+        .insert(Collider::Paddle);
 }
 
-fn new_defender(speed: usize) -> Defender {
+fn new_defender(speed: f32) -> Defender {
     return Defender {
         x: 52,
         speed: speed,
@@ -24,16 +40,17 @@ fn new_defender(speed: usize) -> Defender {
 
 pub fn defender_movement_system(
     keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<&mut Defender>
+    mut query: Query<(&Defender, &mut Transform)>
 ) {
-    let mut defender = query.single_mut();
+    let (defender, mut transform) = query.single_mut();
+    let translation = &mut transform.translation;
 
     if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
-        defender.x -= defender.speed;
+        translation.x -= defender.speed;
     }
 
     if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
-        defender.x += defender.speed;
+        translation.x += defender.speed;
     }
 }
 
