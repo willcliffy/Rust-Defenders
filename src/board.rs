@@ -75,8 +75,7 @@ pub fn new_board(skyline: Vec<usize>) -> Board {
 }
 
 pub fn board_system(query: Query<&Board>, defender_query: Query<&Defender>) {
-    print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
-
+    print!("{esc}c", esc = 27 as char);
     let board = query.single();
     let defender = defender_query.single();
 

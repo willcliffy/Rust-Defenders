@@ -10,7 +10,7 @@ mod board;
 mod config;
 
 fn main() {
-    const TIME_STEP: f32 = 15.0 / 60.0;
+    const TIME_STEP: f32 = 30.0 / 60.0;
 
     let config = config::DefendersConfig::new("./config/config-example.txt".to_string());
 

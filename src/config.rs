@@ -15,17 +15,28 @@ pub struct DefendersConfig {
     // defender_name: String,
 }
 
+fn default_config() -> DefendersConfig {
+    return DefendersConfig{
+        skyline: vec![2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 6, 6, 7, 7, 7, 5, 5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 8, 8, 8, 6, 6, 6, 9, 9, 9, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 10, 10, 10, 4, 4, 4, 9, 9, 9, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 6, 6, 6, 9, 9, 9, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 6, 6, 6, 9, 9, 9, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+        attacker_num_missiles: 50,
+    }
+}
+
 impl DefendersConfig {
     pub fn new(filename: String) -> DefendersConfig {
-        let config_file = File::open(filename).unwrap();
-        let config_rile_reader = BufReader::new(config_file);
+        let config_file = File::open(filename);
+        if config_file.is_err() {
+            return default_config();
+        }
+
+        let config_reader = BufReader::new(config_file.unwrap());
 
         let mut skyline = Vec::new();
         let mut attacker_name = String::new();
         let mut attacker_num_missiles = -1;
         let mut defender_name = String::new();
     
-        for line in config_rile_reader.lines() {
+        for line in config_reader.lines() {
             let line = line.unwrap();
 
             if line.len() == 0 || line.starts_with("#") {
