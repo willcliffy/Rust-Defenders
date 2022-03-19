@@ -81,7 +81,7 @@ pub fn board_system(query: Query<&Board>, defender_query: Query<&Defender>) {
     let defender = defender_query.single();
 
     for row in (1..board.board.len()).rev() {
-        if row == 20 {
+        if row == 15 {
             for col in 0..board.board[row].len() {
                 if col >= defender.x && col <= defender.x + 5 {
                     print!("#");
@@ -89,6 +89,8 @@ pub fn board_system(query: Query<&Board>, defender_query: Query<&Defender>) {
                     print!("{}", board.board[row][col]);
                 }
             }
+        } else if row == 1 {
+            print!("{}", defender.x);
         } else {
             for c in board.board[row].iter() {
                 print!("{}", c);

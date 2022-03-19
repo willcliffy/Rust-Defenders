@@ -1,4 +1,5 @@
 use bevy::{
+    input::{keyboard::KeyCode, Input},
     prelude::*
 };
 
@@ -16,7 +17,7 @@ pub fn setup(mut commands: Commands) {
 
 fn new_defender(speed: usize) -> Defender {
     return Defender {
-        x: 0,
+        x: 52,
         speed: speed,
     }
 }
@@ -27,12 +28,11 @@ pub fn defender_movement_system(
 ) {
     let mut defender = query.single_mut();
 
-    if keyboard_input.pressed(KeyCode::Left) {
+    if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
         defender.x -= defender.speed;
     }
 
-    if keyboard_input.pressed(KeyCode::Right) {
-        print!("{}", defender.x);
+    if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
         defender.x += defender.speed;
     }
 }
