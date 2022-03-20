@@ -3,6 +3,7 @@ use bevy::{
     prelude::*,
 };
 
+mod menu;
 mod attacker;
 mod defender;
 mod config;
@@ -12,10 +13,13 @@ fn main() {
     const TIME_STEP: f32 = 1.0 / 60.0;
 
     let defenders_config = config::default_config();
+    let scoreboard = scoreboard::new_scoreboard(&defenders_config);
+    let menu = menu::new_menu();
 
     App::new()
-        .insert_resource(scoreboard::new_scoreboard(&defenders_config))
         .insert_resource(defenders_config)
+        .insert_resource(scoreboard)
+        .insert_resource(menu)
         .add_plugins(DefaultPlugins)
         .add_startup_system(startup)
         .add_startup_system(scoreboard::setup)
@@ -23,9 +27,13 @@ fn main() {
         .add_startup_system(defender::setup)
         .add_system_set(
             SystemSet::new()
-                .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
-                .with_system(scoreboard::scoreboard_system)
+                .with_run_criteria(FixedTimestep::step(10.0 * TIME_STEP as f64))
+                .with_system(menu::menu_system)
                 .with_system(attacker::attacker_system)
+                .with_system(scoreboard::scoreboard_system))
+        .add_system_set(
+            SystemSet::new()
+                .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
                 .with_system(attacker::missile_movement_system)
                 .with_system(attacker::missile_collision_system)
                 .with_system(defender::defender_movement_system))
@@ -73,8 +81,7 @@ fn startup(mut commands: Commands, config: Res<config::DefendersConfig>) {
                             ..Default::default()
                         },
                         ..Default::default()
-                    })
-                    .insert(config::Collider::Scorable);
+                    });
             }
         } else if *y > last_y as f32 {
             for i in 2..*y as usize {
@@ -90,8 +97,7 @@ fn startup(mut commands: Commands, config: Res<config::DefendersConfig>) {
                             ..Default::default()
                         },
                         ..Default::default()
-                    })
-                    .insert(config::Collider::Scorable);
+                    });
             }
         }
 

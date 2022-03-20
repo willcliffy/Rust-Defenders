@@ -8,6 +8,7 @@ use bevy::{
 use crate::{
     config::*,
     scoreboard::*,
+    menu::*,
 };
 
 #[derive(Component)]
@@ -17,7 +18,6 @@ pub struct Missile {
 
 #[derive(Component)]
 pub struct Attacker {
-    ticks_since_last_missile: i32,
     missiles_left: i32,
     infinite: bool,
 }
@@ -30,47 +30,43 @@ pub fn setup(mut commands: Commands, defenders_config: Res<DefendersConfig>) {
 
 fn new_attacker(missiles: i32) -> Attacker {
     return Attacker {
-        ticks_since_last_missile: 0,
         missiles_left: missiles,
         infinite: missiles == 0,
     }
 }
 
-pub fn attacker_system(mut scoreboard: ResMut<Scoreboard>, mut commands: Commands, mut query: Query<&mut Attacker>) {
+pub fn attacker_system(menu: Res<Menu>, mut commands: Commands, mut query: Query<&mut Attacker>) {
+    if menu.showing {
+        return;
+    }
+    
     let mut attacker = query.single_mut();
 
     if !attacker.infinite && (attacker.missiles_left == 0) {
         return;
     }
 
-    attacker.ticks_since_last_missile += 1;
+    if attacker.missiles_left > 0 {
+        attacker.missiles_left -= 1;
 
-    if attacker.ticks_since_last_missile > 10 {
-        attacker.ticks_since_last_missile = 0;
+        let x_neg = if random::<i32>() % 2 == 0 {1.0} else {-1.0};
+        let x = x_neg * 50.0 * random::<f32>();
+        let spd = 4.0 + 3.0 * random::<f32>();
 
-        if attacker.missiles_left > 0 {
-            attacker.missiles_left -= 1;
-            scoreboard.attacker_ammo = attacker.missiles_left;
-
-            let x_neg = if random::<i32>() % 2 == 0 {1.0} else {-1.0};
-            let x = x_neg * 50.0 * random::<f32>();
-            let spd = 4.0 + 3.0 * random::<f32>();
-
-            commands
-                .spawn_bundle(SpriteBundle {
-                    transform: Transform {
-                        translation: Vec3::new(10.0 * x, 300.0, 0.0),
-                        scale: Vec3::new(5.0, 30.0, 0.0),
-                        ..Default::default()
-                    },
-                    sprite: Sprite {
-                        color: Color::rgb(1.0, 0.25, 0.25),
-                        ..Default::default()
-                    },
+        commands
+            .spawn_bundle(SpriteBundle {
+                transform: Transform {
+                    translation: Vec3::new(10.0 * x, 300.0, 0.0),
+                    scale: Vec3::new(5.0, 30.0, 0.0),
                     ..Default::default()
-                })
-                .insert(Missile { speed: spd });
-        }
+                },
+                sprite: Sprite {
+                    color: Color::rgb(1.0, 0.25, 0.25),
+                    ..Default::default()
+                },
+                ..Default::default()
+            })
+            .insert(Missile { speed: spd });
     }
 }
 
@@ -123,6 +119,7 @@ pub fn missile_collision_system(
                     scoreboard.defender_score += 1;
                 }
 
+                scoreboard.attacker_ammo -= 1;
                 commands.entity(missile_entity).despawn();
                 return
             }

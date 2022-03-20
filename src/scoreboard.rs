@@ -6,6 +6,7 @@ use crate::{
     config::*,
 };
 
+#[derive(Component)]
 pub struct Scoreboard {
     pub defender_name: String,
     pub defender_score: i32,
@@ -94,15 +95,17 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>, scoreboard:
             ..Default::default()
         },
         ..Default::default()
-    });
+    }).insert(TextType::Scoreboard);
 }
 
-pub fn scoreboard_system(scoreboard: Res<Scoreboard>, mut query: Query<&mut Text>) {
-    let mut text = query.single_mut();
+pub fn scoreboard_system(scoreboard: Res<Scoreboard>, mut query: Query<(&mut Text, &TextType)>) {
+    for (mut text, text_type) in query.iter_mut() {
+        if *text_type == TextType::Scoreboard {
+            text.sections[1].value = "  Score:  ".to_string() + &scoreboard.defender_score.to_string() + "\n";
+            text.sections[2].value = "  Health: ".to_string() + &scoreboard.defender_health.to_string() + "\n";
 
-    text.sections[1].value = "  Score:  ".to_string() + &scoreboard.defender_score.to_string() + "\n";
-    text.sections[2].value = "  Health: ".to_string() + &scoreboard.defender_health.to_string() + "\n";
-
-    text.sections[4].value = "  Score:  ".to_string() + &scoreboard.attacker_score.to_string() + "\n";
-    text.sections[5].value = "  Ammo:   ".to_string() + &scoreboard.attacker_ammo.to_string() + "\n";
+            text.sections[4].value = "  Score:  ".to_string() + &scoreboard.attacker_score.to_string() + "\n";
+            text.sections[5].value = "  Ammo:   ".to_string() + &scoreboard.attacker_ammo.to_string() + "\n";
+        }
+    }
 }

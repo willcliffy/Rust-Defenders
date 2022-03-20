@@ -5,6 +5,7 @@ use bevy::{
 
 use crate::{
     config::*,
+    menu::*,
 };
 
 #[derive(Component)]
@@ -27,7 +28,7 @@ pub fn setup(mut commands: Commands) {
             },
             ..Default::default()
         })
-        .insert(new_defender(10.0))
+        .insert(new_defender(15.0))
         .insert(Collider::Paddle);
 }
 
@@ -39,8 +40,9 @@ fn new_defender(speed: f32) -> Defender {
 }
 
 pub fn defender_movement_system(
+    mut menu: ResMut<Menu>,
     keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&Defender, &mut Transform)>
+    mut query: Query<(&Defender, &mut Transform)>,
 ) {
     let (defender, mut transform) = query.single_mut();
     let translation = &mut transform.translation;
@@ -51,6 +53,12 @@ pub fn defender_movement_system(
 
     if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
         translation.x += defender.speed;
+    }
+
+    if menu.showing {
+        if keyboard_input.pressed(KeyCode::Space) {
+            menu.showing = false;
+        }
     }
 }
 
