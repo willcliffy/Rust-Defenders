@@ -2,11 +2,12 @@ use rand::prelude::random;
 
 use bevy::{
     prelude::*,
-    sprite::collide_aabb::{collide, Collision},
+    sprite::collide_aabb::{collide},
 };
 
 use crate::{
     config::*,
+    scoreboard::*,
 };
 
 #[derive(Component)]
@@ -21,10 +22,10 @@ pub struct Attacker {
     infinite: bool,
 }
 
-pub fn setup(mut commands: Commands, config: Res<DefendersConfig>) {
+pub fn setup(mut commands: Commands, defenders_config: Res<DefendersConfig>) {
     commands
         .spawn()
-        .insert(new_attacker(config.attacker_num_missiles));
+        .insert(new_attacker(defenders_config.attacker_ammo));
 }
 
 fn new_attacker(missiles: i32) -> Attacker {
@@ -35,7 +36,7 @@ fn new_attacker(missiles: i32) -> Attacker {
     }
 }
 
-pub fn attacker_system(mut commands: Commands, mut query: Query<&mut Attacker>) {
+pub fn attacker_system(mut scoreboard: ResMut<Scoreboard>, mut commands: Commands, mut query: Query<&mut Attacker>) {
     let mut attacker = query.single_mut();
 
     if !attacker.infinite && (attacker.missiles_left == 0) {
@@ -44,11 +45,12 @@ pub fn attacker_system(mut commands: Commands, mut query: Query<&mut Attacker>) 
 
     attacker.ticks_since_last_missile += 1;
 
-    if attacker.ticks_since_last_missile > 3 {
+    if attacker.ticks_since_last_missile > 10 {
         attacker.ticks_since_last_missile = 0;
 
         if attacker.missiles_left > 0 {
             attacker.missiles_left -= 1;
+            scoreboard.attacker_ammo = attacker.missiles_left;
 
             let x_neg = if random::<i32>() % 2 == 0 {1.0} else {-1.0};
             let x = x_neg * 50.0 * random::<f32>();
@@ -58,7 +60,7 @@ pub fn attacker_system(mut commands: Commands, mut query: Query<&mut Attacker>) 
                 .spawn_bundle(SpriteBundle {
                     transform: Transform {
                         translation: Vec3::new(10.0 * x, 300.0, 0.0),
-                        scale: Vec3::new(10.0, 20.0, 0.0),
+                        scale: Vec3::new(5.0, 30.0, 0.0),
                         ..Default::default()
                     },
                     sprite: Sprite {
@@ -81,12 +83,12 @@ pub fn missile_movement_system(mut query: Query<(&Missile, &mut Transform)>) {
 
 pub fn missile_collision_system(
     mut commands: Commands,
+    mut scoreboard: ResMut<Scoreboard>,
     query: Query<(Entity, &Missile, &Transform)>,
     collider_query: Query<(Entity, &Collider, &Transform)>
 ) {
-    // TODO - I left off here, working on collision logic
     for (missile_entity, _missile, missile_transform) in query.iter() {
-        for (_collider_entity, _collider, collider_transform) in collider_query.iter() {
+        for (collider_entity, collider, collider_transform) in collider_query.iter() {
             let missile_size = missile_transform.scale.truncate();
             let collider_size = collider_transform.scale.truncate();
 
@@ -98,7 +100,31 @@ pub fn missile_collision_system(
             );
 
             if let Some(_collision) = collision {
+                if let Collider::Scorable = *collider {
+                    scoreboard.attacker_score += 1;
+                    scoreboard.defender_health -= 1;
+
+                    commands.entity(collider_entity).despawn();
+                    commands
+                        .spawn_bundle(SpriteBundle {
+                            transform: Transform {
+                                translation: collider_transform.translation,
+                                scale: collider_transform.scale,
+                                ..Default::default()
+                            },
+                            sprite: Sprite {
+                                color: Color::rgb(1.0, 0.0, 0.0),
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        })
+                        .insert(Collider::Solid);
+                } else if let Collider::Paddle = *collider {
+                    scoreboard.defender_score += 1;
+                }
+
                 commands.entity(missile_entity).despawn();
+                return
             }
         }
     }

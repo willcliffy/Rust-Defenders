@@ -6,23 +6,29 @@ use bevy::{
 mod attacker;
 mod defender;
 mod config;
+mod scoreboard;
 
 fn main() {
-    const TIME_STEP: f32 = 30.0 / 60.0;
+    const TIME_STEP: f32 = 1.0 / 60.0;
+
+    let defenders_config = config::default_config();
 
     App::new()
-        .insert_resource(config::default_config())
+        .insert_resource(scoreboard::new_scoreboard(&defenders_config))
+        .insert_resource(defenders_config)
         .add_plugins(DefaultPlugins)
         .add_startup_system(startup)
+        .add_startup_system(scoreboard::setup)
         .add_startup_system(attacker::setup)
         .add_startup_system(defender::setup)
-        .add_system(defender::defender_movement_system)
-        .add_system(attacker::missile_movement_system)
-        .add_system(attacker::missile_collision_system)
         .add_system_set(
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
-                .with_system(attacker::attacker_system))
+                .with_system(scoreboard::scoreboard_system)
+                .with_system(attacker::attacker_system)
+                .with_system(attacker::missile_movement_system)
+                .with_system(attacker::missile_collision_system)
+                .with_system(defender::defender_movement_system))
         .add_system(bevy::input::system::exit_on_esc_system)
         .run();
 }
