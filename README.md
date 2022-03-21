@@ -26,3 +26,9 @@ If you have Rust installed locally, you can run it directly:
 ```bash
 cargo run
 ```
+
+If you're on a Unix-like system, you can easily [install Rust](https://rustup.rs/) with the following command:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
