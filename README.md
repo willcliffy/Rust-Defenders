@@ -26,10 +26,3 @@ If you have Rust installed locally, you can run it directly:
 ```bash
 cargo run
 ```
-
-If you have Docker installed, you may also build and run the Docker image:
-
-```bash
-docker build -t rust-defenders .
-docker run rust-defenders
-```
